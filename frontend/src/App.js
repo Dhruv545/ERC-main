@@ -143,6 +143,24 @@ function App() {
     }
   };
 
+  // Delete production
+  const deleteProduction = async (productionId) => {
+    if (window.confirm('Are you sure you want to delete this production record? This will restore the consumed material back to inventory.')) {
+      try {
+        const response = await axios.delete(`${API}/production/${productionId}`);
+        const result = response.data;
+        showMessage(
+          `Production deleted successfully! ${result.material_restored_kg.toFixed(2)}kg restored to inventory.`, 
+          'success'
+        );
+        fetchDashboardData();
+        fetchAllProductions();
+      } catch (error) {
+        showMessage(error.response?.data?.detail || 'Error deleting production', 'error');
+      }
+    }
+  };
+
   // Submit production form
   const submitProduction = async (e) => {
     e.preventDefault();
