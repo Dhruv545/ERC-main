@@ -101,7 +101,12 @@ async def add_heat(heat_data: HeatCreate):
         if existing_heat:
             raise HTTPException(status_code=400, detail="Heat number already exists")
         
-        await db.heats.insert_one(heat_obj.dict())
+        # Convert date to string for MongoDB storage
+        heat_dict = heat_obj.dict()
+        if isinstance(heat_dict['date_received'], date):
+            heat_dict['date_received'] = heat_dict['date_received'].isoformat()
+        
+        await db.heats.insert_one(heat_dict)
         return heat_obj
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
