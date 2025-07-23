@@ -185,6 +185,7 @@ function App() {
   useEffect(() => {
     fetchDashboardData();
     fetchAllHeats();
+    fetchAllProductions();
   }, []);
 
   if (loading) {
