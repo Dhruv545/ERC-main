@@ -122,6 +122,93 @@ async def get_heats():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.put("/heat/{heat_id}", response_model=Heat)
+async def update_heat(heat_id: str, heat_data: HeatCreate):
+    """Update an existing heat record"""
+    try:
+        # Check if heat exists
+        existing_heat = await db.heats.find_one({"id": heat_id})
+        if not existing_heat:
+            raise HTTPException(status_code=404, detail="Heat not found")
+        
+        # Check if heat number is being changed and if new number already exists
+        if heat_data.heat_number != existing_heat["heat_number"]:
+            duplicate_heat = await db.heats.find_one({
+                "heat_number": heat_data.heat_number,
+                "id": {"$ne": heat_id}
+            })
+            if duplicate_heat:
+                raise HTTPException(status_code=400, detail="Heat number already exists")
+        
+        # Calculate how much material was consumed from this heat
+        original_quantity = existing_heat["quantity_kg"]
+        remaining_quantity = existing_heat["remaining_kg"]
+        consumed_quantity = original_quantity - remaining_quantity
+        
+        # Update the heat record
+        heat_dict = heat_data.dict()
+        if heat_dict.get('date_received') is None:
+            heat_dict['date_received'] = existing_heat["date_received"]
+        
+        # Ensure new remaining quantity accounts for already consumed material
+        new_remaining = heat_dict["quantity_kg"] - consumed_quantity
+        if new_remaining < 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot set quantity to {heat_dict['quantity_kg']}kg. {consumed_quantity}kg has already been consumed from this heat."
+            )
+        
+        heat_dict["remaining_kg"] = new_remaining
+        heat_dict["id"] = heat_id
+        
+        # Convert date to string for MongoDB storage
+        if isinstance(heat_dict['date_received'], date):
+            heat_dict['date_received'] = heat_dict['date_received'].isoformat()
+        
+        # Update in database
+        await db.heats.update_one(
+            {"id": heat_id},
+            {"$set": heat_dict}
+        )
+        
+        return Heat(**heat_dict)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/heat/{heat_id}")
+async def delete_heat(heat_id: str):
+    """Delete a heat record (only if no material has been consumed)"""
+    try:
+        # Check if heat exists
+        existing_heat = await db.heats.find_one({"id": heat_id})
+        if not existing_heat:
+            raise HTTPException(status_code=404, detail="Heat not found")
+        
+        # Check if any material has been consumed from this heat
+        original_quantity = existing_heat["quantity_kg"]
+        remaining_quantity = existing_heat["remaining_kg"]
+        consumed_quantity = original_quantity - remaining_quantity
+        
+        if consumed_quantity > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot delete heat. {consumed_quantity}kg has already been consumed from this heat."
+            )
+        
+        # Delete the heat record
+        result = await db.heats.delete_one({"id": heat_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Heat not found")
+        
+        return {"message": "Heat deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/production", response_model=Production)
 async def add_production(production_data: ProductionCreate):
     """Add a new production record and update inventory"""
