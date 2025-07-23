@@ -9,6 +9,8 @@ function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [allHeats, setAllHeats] = useState([]);
+  const [editingHeat, setEditingHeat] = useState(null);
   
   // Form states
   const [heatForm, setHeatForm] = useState({
