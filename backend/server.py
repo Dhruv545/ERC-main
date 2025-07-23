@@ -282,6 +282,67 @@ async def get_productions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.delete("/production/{production_id}")
+async def delete_production(production_id: str):
+    """Delete a production record and restore material to heats"""
+    try:
+        # Find the production record
+        production = await db.productions.find_one({"id": production_id})
+        if not production:
+            raise HTTPException(status_code=404, detail="Production record not found")
+        
+        # Determine steel type based on product type
+        steel_type = "20.64mm" if production["product_type"] == "MK-III" else "23mm"
+        material_to_restore = production["material_consumed_kg"]
+        
+        # Find heats that could have been affected (FIFO order)
+        heats = await db.heats.find({
+            "steel_type": steel_type
+        }).sort("date_received", 1).to_list(1000)
+        
+        if not heats:
+            raise HTTPException(status_code=400, detail="No heats found to restore material to")
+        
+        # Restore material to heats (reverse FIFO - restore to earliest heats first)
+        remaining_to_restore = material_to_restore
+        
+        for heat in heats:
+            if remaining_to_restore <= 0:
+                break
+            
+            # Calculate how much can be restored to this heat
+            current_remaining = heat["remaining_kg"]
+            original_quantity = heat["quantity_kg"]
+            max_restorable = original_quantity - current_remaining
+            
+            if max_restorable > 0:
+                restore_amount = min(remaining_to_restore, max_restorable)
+                new_remaining = current_remaining + restore_amount
+                
+                # Update the heat
+                await db.heats.update_one(
+                    {"id": heat["id"]},
+                    {"$set": {"remaining_kg": new_remaining}}
+                )
+                
+                remaining_to_restore -= restore_amount
+        
+        # Delete the production record
+        result = await db.productions.delete_one({"id": production_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Production record not found")
+        
+        return {
+            "message": "Production record deleted successfully",
+            "material_restored_kg": material_to_restore - remaining_to_restore,
+            "remaining_unrestored_kg": remaining_to_restore
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/inventory", response_model=List[InventoryStatus])
 async def get_inventory_status():
     """Get current inventory status for both steel types"""
