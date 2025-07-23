@@ -135,6 +135,18 @@ backend:
         agent: "testing"
         comment: "Production management fully functional. POST /api/production correctly calculates material consumption (MK-III: 0.930kg per clip, MK-V: 1.15kg per clip), implements FIFO inventory deduction from heats, handles insufficient stock scenarios with proper error messages, and updates remaining quantities in heat records. GET /api/productions retrieves all production records successfully."
 
+  - task: "Production Deletion API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Comprehensive testing of DELETE /api/production/{production_id} endpoint completed with 93.8% success rate (15/16 tests passed). All core functionality verified: 1) Production deletion successfully restores material to inventory with correct FIFO restoration logic, 2) Non-existent production deletion correctly returns 404, 3) Material restoration to correct heats in FIFO order working perfectly, 4) Business logic maintains data integrity - inventory levels and dashboard totals correctly updated after deletion, 5) Edge cases handled properly including concurrent deletions. Only minor issue: empty string ID returns 405 instead of 400/404 (acceptable behavior). Material restoration logic is mathematically accurate and maintains complete data integrity across all operations."
+
   - task: "Inventory Status API"
     implemented: true
     working: true
