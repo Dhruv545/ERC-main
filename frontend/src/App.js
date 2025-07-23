@@ -153,6 +153,7 @@ function App() {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchAllHeats();
   }, []);
 
   if (loading) {
