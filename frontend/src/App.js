@@ -55,6 +55,17 @@ function App() {
     }
   };
 
+  // Fetch all productions
+  const fetchAllProductions = async () => {
+    try {
+      const response = await axios.get(`${API}/productions`);
+      setAllProductions(response.data);
+    } catch (error) {
+      console.error('Error fetching productions:', error);
+      showMessage('Error fetching productions', 'error');
+    }
+  };
+
   // Show message
   const showMessage = (msg, type) => {
     setMessage(msg);
