@@ -331,7 +331,17 @@ function App() {
         {/* Add Heat Tab */}
         {activeTab === 'add-heat' && (
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Add New Heat</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              {editingHeat ? 'Edit Heat Record' : 'Add New Heat'}
+            </h2>
+            {editingHeat && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  Editing Heat: {editingHeat.heat_number} | 
+                  Consumed: {(editingHeat.quantity_kg - editingHeat.remaining_kg).toFixed(1)} kg
+                </p>
+              </div>
+            )}
             <form onSubmit={submitHeat} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Heat Number</label>
@@ -381,13 +391,104 @@ function App() {
                 />
               </div>
               
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
-              >
-                Add Heat
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                >
+                  {editingHeat ? 'Update Heat' : 'Add Heat'}
+                </button>
+                {editingHeat && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
+          </div>
+        )}
+
+        {/* Manage Heats Tab */}
+        {activeTab === 'manage-heats' && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Manage Heat Records</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Heat Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Steel Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Original Qty (kg)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Remaining (kg)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date Received
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {allHeats.map((heat) => (
+                    <tr key={heat.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {heat.heat_number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {heat.steel_type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {heat.quantity_kg.toFixed(1)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          heat.remaining_kg > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {heat.remaining_kg.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {heat.date_received}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => editHeat(heat)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteHeat(heat.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-xs"
+                            disabled={heat.remaining_kg < heat.quantity_kg}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {allHeats.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No heat records found.</p>
+              </div>
+            )}
           </div>
         )}
 
