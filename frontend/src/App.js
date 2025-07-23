@@ -43,6 +43,17 @@ function App() {
     }
   };
 
+  // Fetch all heats
+  const fetchAllHeats = async () => {
+    try {
+      const response = await axios.get(`${API}/heats`);
+      setAllHeats(response.data);
+    } catch (error) {
+      console.error('Error fetching heats:', error);
+      showMessage('Error fetching heats', 'error');
+    }
+  };
+
   // Show message
   const showMessage = (msg, type) => {
     setMessage(msg);
