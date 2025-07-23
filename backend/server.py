@@ -108,6 +108,8 @@ async def add_heat(heat_data: HeatCreate):
         
         await db.heats.insert_one(heat_dict)
         return heat_obj
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
