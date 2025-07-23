@@ -65,11 +65,22 @@ function App() {
   const submitHeat = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/heat`, {
+      const heatData = {
         ...heatForm,
         quantity_kg: parseFloat(heatForm.quantity_kg)
-      });
-      showMessage('Heat added successfully!', 'success');
+      };
+
+      if (editingHeat) {
+        // Update existing heat
+        await axios.put(`${API}/heat/${editingHeat.id}`, heatData);
+        showMessage('Heat updated successfully!', 'success');
+        setEditingHeat(null);
+      } else {
+        // Create new heat
+        await axios.post(`${API}/heat`, heatData);
+        showMessage('Heat added successfully!', 'success');
+      }
+      
       setHeatForm({
         heat_number: '',
         steel_type: '20.64mm',
@@ -77,8 +88,46 @@ function App() {
         date_received: new Date().toISOString().split('T')[0]
       });
       fetchDashboardData();
+      fetchAllHeats();
     } catch (error) {
-      showMessage(error.response?.data?.detail || 'Error adding heat', 'error');
+      showMessage(error.response?.data?.detail || 'Error saving heat', 'error');
+    }
+  };
+
+  // Edit heat
+  const editHeat = (heat) => {
+    setEditingHeat(heat);
+    setHeatForm({
+      heat_number: heat.heat_number,
+      steel_type: heat.steel_type,
+      quantity_kg: heat.quantity_kg.toString(),
+      date_received: heat.date_received
+    });
+    setActiveTab('add-heat');
+  };
+
+  // Cancel edit
+  const cancelEdit = () => {
+    setEditingHeat(null);
+    setHeatForm({
+      heat_number: '',
+      steel_type: '20.64mm',
+      quantity_kg: '',
+      date_received: new Date().toISOString().split('T')[0]
+    });
+  };
+
+  // Delete heat
+  const deleteHeat = async (heatId) => {
+    if (window.confirm('Are you sure you want to delete this heat record?')) {
+      try {
+        await axios.delete(`${API}/heat/${heatId}`);
+        showMessage('Heat deleted successfully!', 'success');
+        fetchDashboardData();
+        fetchAllHeats();
+      } catch (error) {
+        showMessage(error.response?.data?.detail || 'Error deleting heat', 'error');
+      }
     }
   };
 
