@@ -234,12 +234,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Heat Management API"
-    - "Production Management API"
-    - "Inventory Status API"
-    - "Dashboard Data API"
+    - "Production Deletion API"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
