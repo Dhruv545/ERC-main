@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [allHeats, setAllHeats] = useState([]);
+  const [allProductions, setAllProductions] = useState([]);
   const [editingHeat, setEditingHeat] = useState(null);
   
   // Form states
