@@ -122,15 +122,18 @@ backend:
 
   - task: "Production Management API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented POST /api/production and GET /api/productions with automatic material consumption calculation and FIFO inventory deduction"
+      - working: true
+        agent: "testing"
+        comment: "Production management fully functional. POST /api/production correctly calculates material consumption (MK-III: 0.930kg per clip, MK-V: 1.15kg per clip), implements FIFO inventory deduction from heats, handles insufficient stock scenarios with proper error messages, and updates remaining quantities in heat records. GET /api/productions retrieves all production records successfully."
 
   - task: "Inventory Status API"
     implemented: true
