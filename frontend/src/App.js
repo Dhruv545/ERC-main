@@ -203,7 +203,7 @@ function App() {
       {/* Navigation Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <nav className="flex space-x-8">
-          {['dashboard', 'add-heat', 'add-production'].map((tab) => (
+          {['dashboard', 'add-heat', 'manage-heats', 'add-production'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -214,7 +214,8 @@ function App() {
               }`}
             >
               {tab === 'dashboard' && 'Dashboard'}
-              {tab === 'add-heat' && 'Add Heat'}
+              {tab === 'add-heat' && (editingHeat ? 'Edit Heat' : 'Add Heat')}
+              {tab === 'manage-heats' && 'Manage Heats'}
               {tab === 'add-production' && 'Record Production'}
             </button>
           ))}
