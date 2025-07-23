@@ -176,6 +176,7 @@ function App() {
         quantity_produced: ''
       });
       fetchDashboardData();
+      fetchAllProductions();
     } catch (error) {
       showMessage(error.response?.data?.detail || 'Error recording production', 'error');
     }
