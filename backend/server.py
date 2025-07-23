@@ -171,8 +171,13 @@ async def add_production(production_data: ProductionCreate):
                     {"$set": {"remaining_kg": 0}}
                 )
         
+        # Convert date to string for MongoDB storage
+        production_dict = production_obj.dict()
+        if isinstance(production_dict['date'], date):
+            production_dict['date'] = production_dict['date'].isoformat()
+        
         # Save production record
-        await db.productions.insert_one(production_obj.dict())
+        await db.productions.insert_one(production_dict)
         return production_obj
     except HTTPException:
         raise
